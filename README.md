@@ -48,6 +48,7 @@ Make sure to have the following set up:
 User: What are the symptoms of the common cold?
 Chatbot: The common symptoms of a cold include sneezing, runny nose, sore throat, coughing, and mild fever.
 ```
+![alt text](images/image.png)
 
 ## Future Improvements
 - Add more health-related documents to improve the chatbot's knowledge base.
