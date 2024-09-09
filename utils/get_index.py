@@ -25,7 +25,7 @@ def create_index():
     Create index if necessary else dont create
   
   '''
-  index_name = 'SimpleDiagnosis'
+  index_name = 'simple-diagnosis'
   pc = Pinecone(api_key=pincone_api)
 
   # Check existing indexes
@@ -47,7 +47,7 @@ def create_index():
     # Load documents from the directory and create the index
     pinecone_index = pc.Index(index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
-    documents = SimpleDirectoryReader("./data/").load_data()
+    documents = SimpleDirectoryReader("./data/drugs/").load_data()
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
     index = VectorStoreIndex.from_documents(
         documents, storage_context=storage_context

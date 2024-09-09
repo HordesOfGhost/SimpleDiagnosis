@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QA Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            background-color: #fff;
+            width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        .chat-body {
+            height: 400px;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-message.user {
+            text-align: right;
+            color: #333;
+        }
+        .chat-message.bot {
+            text-align: left;
+            color: #007bff;
+        }
+        .chat-footer {
+            display: flex;
+            border-top: 1px solid #ddd;
+        }
+        .chat-footer input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            outline: none;
+        }
+        .chat-footer button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .source-block {
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>QA Chatbot 🤖</h2>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="userInput" placeholder="Ask a question...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to append a message to the chat body
+        function appendMessage(sender, text) {
+            const chatBody = document.getElementById('chatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', sender);
+            messageDiv.textContent = text;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to the bottom
+        }
+
+        // Function to append source information to the chat body
+        function appendSources(sources) {
+            const chatBody = document.getElementById('chatBody');
+            const sourceDiv = document.createElement('div');
+            sourceDiv.classList.add('source-block');
+            sourceDiv.textContent = sources;
+            chatBody.appendChild(sourceDiv);
+            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to the bottom
+        }
+
+        // Function to send user message to the bot and get a response
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const query = userInput.value.trim();
+            
+            if (query === "") return;  // Ignore empty queries
+
+            appendMessage('user', query);  // Show user message
+            userInput.value = "";  // Clear input
+
+            // Send query to the Flask backend
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await response.json();
+
+                // Show the bot's response and source information in different blocks
+                appendMessage('bot', data.response);
+                if (data.sources) {
+                    appendSources(data.sources);
+                }
+            } catch (error) {
+                appendMessage('bot', "Sorry, something went wrong.");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

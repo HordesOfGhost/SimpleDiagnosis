@@ -1,4 +1,5 @@
-from utils.get_index import * 
+from flask import Flask, request, jsonify, render_template
+from utils.get_index import *
 from utils.prompt_func import *
 
 from llama_index.llms.huggingface import HuggingFaceInferenceAPI
@@ -16,7 +17,6 @@ load_dotenv()
 token = os.getenv('HUGGINGFACEHUB_API_TOKEN')
 
 Settings.llm = HuggingFaceInferenceAPI(
-    # model_name="HuggingFaceH4/zephyr-7b-beta",
     model_name="mistralai/Mistral-7B-Instruct-v0.3",
     token=token,
     context_window=3900,
@@ -30,19 +30,19 @@ Settings.llm = HuggingFaceInferenceAPI(
 print("Setting up the QA bot...🤖")
 index = create_index()
 
-
 def final_result(query):
     query_engine = index.as_query_engine()
     response = query_engine.query(query)
     return response, query
 
-
 def format_output(answer, query):
-    result = f"**Question:** {query} 🤔\n\n"
-    result += f"**Answer:** 💡 {answer.response} 🙏\n\n"
+    # Main answer response
+    response_block = f"{answer.response}\n\n"
 
+    # Source information block
+    source_block = ""
     if answer.source_nodes:
-        result += "You can read more of it at: \n"
+        source_block += "You can read more of it at: \n"
         for node in answer.source_nodes:
             # Extracting metadata
             metadata = node.node.metadata
@@ -50,23 +50,35 @@ def format_output(answer, query):
             source = metadata.get('file_name', 'N/A')
 
             # Formatting the source information
-            result += f"- Page {page} from {source}\n"
-        result += "\n"
+            source_block += f"- Page {page} from {source}\n"
+        source_block += "\n"
+    
+    return response_block, source_block
 
-    result += "What would you like to know more?"
 
-    return result
+# Flask app setup
+app = Flask(__name__)
 
-def main():
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == 'exit':
-            break
+@app.route('/query', methods=['POST'])
+def query_bot():
+    data = request.json
+    user_input = data.get('query')
 
-        response, query = final_result(user_input)
-        formatted_output = format_output(response, query)
-        print("Bot:", formatted_output)
+    if not user_input:
+        return jsonify({'error': 'Query is missing'}), 400
+
+    response, query = final_result(user_input)
+    response_block, source_block = format_output(response, query)
+
+    return jsonify({
+        'response': response_block,
+        'sources': source_block
+    })
+
 
 if __name__ == '__main__':
-    main()
+    app.run(host='0.0.0.0', port=5000, debug=True)
