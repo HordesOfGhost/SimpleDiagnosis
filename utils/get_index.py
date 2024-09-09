@@ -55,6 +55,7 @@ def create_index():
     return index
 
   else:
+    # if index exists then load directly
     pinecone_index = pc.Index(index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
     index = VectorStoreIndex.from_vector_store(
