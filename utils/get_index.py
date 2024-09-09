@@ -25,7 +25,7 @@ def create_index():
     Create index if necessary else dont create
   
   '''
-  index_name = 'geeta'
+  index_name = 'SimpleDiagnosis'
   pc = Pinecone(api_key=pincone_api)
 
   # Check existing indexes
